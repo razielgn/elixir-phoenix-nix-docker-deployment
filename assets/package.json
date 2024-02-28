@@ -1,0 +1,22 @@
+{
+  "name": "assets",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "lint": "prettier --color --check .",
+    "lint.fix": "prettier --write .",
+    "tailwind": "NODE_ENV=production tailwindcss --minify -i css/app.css -o ../priv/static/assets/app.css",
+    "esbuild": "NODE_ENV=production node esbuild-prod.js",
+    "deploy": "yarn tailwind && yarn esbuild"
+  },
+  "dependencies": {
+    "@tailwindcss/forms": "^0.5.7",
+    "esbuild": "^0.20.1",
+    "phoenix": "file:../deps/phoenix",
+    "phoenix_html": "file:../deps/phoenix_html",
+    "phoenix_live_view": "file:../deps/phoenix_live_view",
+    "prettier": "^3.2.5",
+    "tailwindcss": "^3.4.1",
+    "topbar": "^2.0.2"
+  }
+}

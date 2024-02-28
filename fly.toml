@@ -1,0 +1,14 @@
+app = "elixir-phoenix-nix-docker-deployment"
+primary_region = "lhr"
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 1000
+    soft_limit = 1000
