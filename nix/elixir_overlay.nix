@@ -1,6 +1,6 @@
 final: prev: let
-  beamPackages = prev.beam_minimal.packagesWith prev.beam_minimal.interpreters.erlang_26;
-  elixir = beamPackages.elixir_1_16;
+  beamPackages = prev.beam_minimal.packagesWith prev.beam_minimal.interpreters.erlang_27;
+  elixir = beamPackages.elixir_1_17;
 in {
   inherit elixir;
   inherit (beamPackages) erlang;
