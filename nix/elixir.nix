@@ -12,9 +12,17 @@
   name = "foo";
   version = "master";
 
-  assetsSrc = [../assets/.];
+  fs = lib.fileset;
 
-  elixirSrc = [
+  assetsSrc = fs.toSource {
+    root = ../.;
+    fileset = fs.unions [
+      ../assets
+      (fs.fileFilter (file: file.hasExt "ex" || file.hasExt "heex" || file.hasExt ".eex") ../lib)
+    ];
+  };
+
+  elixirSrcFileset = fs.unions [
     ../config/.
     ../lib/.
     ../mix.exs
@@ -22,21 +30,29 @@
     ../priv/.
   ];
 
-  relSrc = elixirSrc ++ assetsSrc;
+  elixirSrc = fs.toSource {
+    root = ../.;
+    fileset = elixirSrcFileset;
+  };
 
-  devSrc = elixirSrc ++ [../test/.];
+  relSrc = fs.toSource {
+    root = ../.;
+    fileset = fs.unions [
+      elixirSrcFileset
+      ../rel/.
+    ];
+  };
+
+  devSrc = fs.toSource {
+    root = ../.;
+    fileset = fs.unions [
+      elixirSrcFileset
+      ../test/.
+    ];
+  };
 
   mixNixDeps = import ./mix_deps.nix {
     inherit lib beamPackages;
-
-    overrides = final: prev: {
-      heroicons = fetchFromGitHub {
-        owner = "tailwindlabs";
-        repo = "heroicons";
-        rev = "v2.1.1";
-        hash = "sha256-4yRqfY8r2Ar9Fr45ikD/8jK+H3g4veEHfXa9BorLxXg=";
-      };
-    };
   };
 
   yarnDeps = mkYarnModules {
@@ -59,19 +75,46 @@
     '';
   };
 
+  assetsDrv = stdenv.mkDerivation {
+    name = "${name}-assets";
+    version = "master";
+
+    src = assetsSrc;
+
+    nativeBuildInputs = [
+      yarn
+      removeReferencesTo
+    ];
+
+    buildPhase = ''
+      export HOME=$TMPDIR
+
+      pushd assets
+
+      ln -sf ${yarnDeps}/node_modules node_modules
+      ln -sf ${yarnDeps}/lib lib
+
+      yarn --offline deploy
+
+      popd
+    '';
+
+    installPhase = ''
+      mkdir -p $out/manifests
+
+      cp --no-preserve=mode assets/*.json $out/manifests
+      cp --no-preserve=mode -r priv/static/assets $out/assets
+
+      find "$out" \
+        -type f \
+        -exec remove-references-to -t ${yarnDeps} '{}' +
+    '';
+
+    disallowedReferences = [yarnDeps];
+  };
+
   commonArgs = {
     inherit version mixNixDeps;
-
-    # TODO: why?
-    unpackPhase = ''
-      for srcFile in $src; do
-        if [[ -d "$srcFile" ]]; then
-          cp --no-preserve=mode -r $srcFile $(stripHash $srcFile)
-        else
-          cp --no-preserve=mode $srcFile $(stripHash $srcFile)
-        fi
-      done
-    '';
 
     ELIXIR_ERL_OPTIONS = "+fnu";
     LC_ALL = "C.UTF-8";
@@ -85,16 +128,23 @@ in {
       nativeBuildInputs = [
         rdfind
         removeReferencesTo
-        yarn
       ];
 
+      # postBuild = ''
+      #   export HOME=$TMPDIR
+
+      #   ln -sf ${yarnDeps}/node_modules assets/node_modules
+      #   cp --no-preserve=mode -r ${mixNixDeps.heroicons} deps/heroicons
+
+      #   yarn deploy
+
+      #   mix phx.digest --no-deps-check --no-compile
+      # '';
       postBuild = ''
-        export HOME=$TMPDIR
+        mkdir -p priv/static/assets
+        cp --no-preserve=mode ${assetsDrv}/assets/* priv/static/assets
 
-        ln -sf ${yarnDeps}/node_modules assets/node_modules
-        cp --no-preserve=mode -r ${mixNixDeps.heroicons} deps/heroicons
-
-        mix assets.deploy --no-deps-check
+        mix phx.digest --no-deps-check --no-compile
       '';
 
       postInstall = ''
@@ -169,6 +219,7 @@ in {
       buildPhase = ''
         export HOME=$TMPDIR
 
+        cd assets
         ln -sf ${yarnDeps}/node_modules node_modules
 
         yarn --offline run lint
