@@ -17,7 +17,7 @@
 
         overlays = [
           (import ./nix/elixir_overlay.nix)
-          (import ./nix/overlay.nix)
+          (import ./nix/nodejs_overlay.nix)
         ];
       };
 
