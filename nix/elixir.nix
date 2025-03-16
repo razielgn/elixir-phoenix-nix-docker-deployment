@@ -1,12 +1,12 @@
 {
   beamPackages,
-  fetchFromGitHub,
   lib,
   mkYarnModules,
-  postgresql_16,
+  postgresql_17,
   rdfind,
   removeReferencesTo,
   stdenv,
+  writeShellScript,
   yarn,
 }: let
   name = "foo";
@@ -29,11 +29,6 @@
     ../mix.lock
     ../priv/.
   ];
-
-  elixirSrc = fs.toSource {
-    root = ../.;
-    fileset = elixirSrcFileset;
-  };
 
   relSrc = fs.toSource {
     root = ../.;
@@ -119,7 +114,7 @@
     ELIXIR_ERL_OPTIONS = "+fnu";
     LC_ALL = "C.UTF-8";
   };
-in {
+in rec {
   rel = beamPackages.mixRelease (commonArgs
     // {
       pname = name;
@@ -130,16 +125,6 @@ in {
         removeReferencesTo
       ];
 
-      # postBuild = ''
-      #   export HOME=$TMPDIR
-
-      #   ln -sf ${yarnDeps}/node_modules assets/node_modules
-      #   cp --no-preserve=mode -r ${mixNixDeps.heroicons} deps/heroicons
-
-      #   yarn deploy
-
-      #   mix phx.digest --no-deps-check --no-compile
-      # '';
       postBuild = ''
         mkdir -p priv/static/assets
         cp --no-preserve=mode ${assetsDrv}/assets/* priv/static/assets
@@ -180,6 +165,13 @@ in {
       disallowedReferences = [beamPackages.erlang yarnDeps];
     });
 
+  entrypoint = writeShellScript "entrypoint" ''
+    set -eEou pipefail
+
+    ${rel}/bin/foo eval Foo.Release.migrate
+    exec ${rel}/bin/foo start
+  '';
+
   checks = {
     "${name}-test" = beamPackages.mixRunTask (commonArgs
       // {
@@ -187,7 +179,7 @@ in {
         src = devSrc;
 
         nativeBuildInputs = [
-          postgresql_16
+          postgresql_17
         ];
 
         mixEnv = "test";

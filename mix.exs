@@ -38,7 +38,7 @@ defmodule Foo.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 0.20.2"},
+      {:phoenix_live_view, "~> 1.0.1"},
       {:floki, ">= 0.30.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:heroicons, "~> 0.5.0"},
@@ -48,7 +48,7 @@ defmodule Foo.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.1.1"},
+      {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.2"},
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false}
     ]

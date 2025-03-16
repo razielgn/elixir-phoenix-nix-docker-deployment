@@ -42,8 +42,9 @@ defmodule FooWeb do
         formats: [:html, :json],
         layouts: [html: FooWeb.Layouts]
 
+      use Gettext, backend: FooWeb.Gettext
+
       import Plug.Conn
-      import FooWeb.Gettext
 
       unquote(verified_routes())
     end
@@ -81,11 +82,13 @@ defmodule FooWeb do
 
   defp html_helpers do
     quote do
+      # Translation
+      use Gettext, backend: FooWeb.Gettext
+
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components and translation
+      # Core UI components
       import FooWeb.CoreComponents
-      import FooWeb.Gettext
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
@@ -105,7 +108,7 @@ defmodule FooWeb do
   end
 
   @doc """
-  When used, dispatch to the appropriate controller/view/etc.
+  When used, dispatch to the appropriate controller/live_view/etc.
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])

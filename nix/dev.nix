@@ -12,7 +12,7 @@
   nodejs,
   overmind,
   pgcli,
-  postgresql_16,
+  postgresql_17,
   statix,
   stdenv,
   yarn,
@@ -32,7 +32,7 @@ mkShell {
       nodejs
       overmind
       pgcli
-      postgresql_16
+      postgresql_17
       statix
       yarn
       yarn2nix

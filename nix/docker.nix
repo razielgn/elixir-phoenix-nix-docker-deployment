@@ -1,43 +1,35 @@
 {
   app,
-  coreutils,
-  dockerTools,
-  gawk,
-  gnugrep,
-  gnused,
-  writeShellScriptBin,
-}: let
-  entrypoint = writeShellScriptBin "entrypoint.sh" ''
-    set -eEou pipefail
+  bash,
+  buildEnv,
+  nix2container,
+}:
+nix2container.buildImage {
+  name = "foo";
+  tag = "latest";
 
-    ${app.rel}/bin/foo eval Foo.Release.migrate
-    ${app.rel}/bin/foo start
-  '';
-in
-  dockerTools.streamLayeredImage {
-    name = "foo";
+  config = {
+    Entrypoint = ["${app.entrypoint}"];
 
-    tag = "latest";
+    ExposedPorts = {
+      "4000/tcp" = {};
+    };
 
-    contents = [
-      dockerTools.usrBinEnv
-      dockerTools.binSh
-      coreutils
-      gnugrep
-      gnused
-      gawk
+    Env = [
+      "ECTO_IPV6=true"
+      "ERL_AFLAGS=-proto_dist inet6_tcp"
+      "LC_ALL=C.UTF-8"
+    ];
+  };
+
+  copyToRoot = buildEnv {
+    name = "root";
+
+    paths = [
+      bash
+      app.rel
     ];
 
-    config = {
-      Entrypoint = ["${entrypoint}/bin/entrypoint.sh"];
-      Env = [
-        "LC_ALL=C.UTF-8"
-        "PATH=${app.rel}/bin:/bin"
-        "ECTO_IPV6=true"
-        "ERL_AFLAGS=-proto_dist inet6_tcp"
-      ];
-      ExposedPorts = {
-        "4000/tcp" = {};
-      };
-    };
-  }
+    pathsToLink = ["/bin"];
+  };
+}

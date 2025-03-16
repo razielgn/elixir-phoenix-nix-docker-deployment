@@ -1,4 +1,4 @@
-# Foo
+# Foo [![built with nix](https://builtwithnix.org/badge.svg)](https://builtwithnix.org)
 
 To start your Phoenix server:
 

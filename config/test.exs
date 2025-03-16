@@ -3,7 +3,7 @@ import Config
 config :foo, Foo.Repo,
   url: System.get_env("TEST_DATABASE_URL"),
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 20
+  pool_size: System.schedulers_online() * 2
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
@@ -23,3 +23,7 @@ config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Enable helpful, but potentially expensive runtime checks
+config :phoenix_live_view,
+  enable_expensive_runtime_checks: true

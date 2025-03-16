@@ -1,5 +1,5 @@
 app = "elixir-phoenix-nix-docker-deployment"
-primary_region = "lhr"
+primary_region = "ams"
 
 [http_service]
   internal_port = 4000
